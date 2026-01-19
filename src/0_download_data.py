@@ -17,7 +17,7 @@ TARGET_MAP = {
 }
 
 # Limit samples per category to save time/bandwidth (ESC-50 has 40 per class)
-SAMPLES_PER_CLASS = 20 
+SAMPLES_PER_CLASS = 40 
 
 def download_file(url, save_path):
     try:
