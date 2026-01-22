@@ -23,6 +23,9 @@ STEP_SIZE = int(SAMPLE_RATE * WINDOW_STEP)
 # We initialized it with zeros
 audio_buffer = np.zeros(BLOCK_SIZE, dtype=np.float32)
 
+# Audio Queue
+audio_queue = queue.Queue()
+
 def audio_callback(indata, frames, time, status):
     """Callback function to capture audio."""
     if status:
@@ -30,7 +33,32 @@ def audio_callback(indata, frames, time, status):
     # Add incoming audio to the queue
     audio_queue.put(indata.copy())
 
-# ... (preprocess_audio remains same) ...
+def preprocess_audio(audio_buffer):
+    """Convert raw audio buffer to Mel-Spectrogram."""
+    # Flatten buffer
+    audio = audio_buffer.flatten()
+    
+    # Extract Mel-Spectrogram (Same logic as 1_preprocess.py)
+    mel_spec = librosa.feature.melspectrogram(
+        y=audio, 
+        sr=SAMPLE_RATE, 
+        n_mels=64, 
+        n_fft=1024, 
+        hop_length=512
+    )
+    mel_spec_db = librosa.power_to_db(mel_spec, ref=np.max)
+    
+    # Ensure shape matches model input (1, 64, 63, 1)
+    # Resize/Pad if necessary (simple resizing for real-time stability)
+    expected_width = 63
+    current_width = mel_spec_db.shape[1]
+    
+    if current_width < expected_width:
+        mel_spec_db = np.pad(mel_spec_db, ((0, 0), (0, expected_width - current_width)))
+    elif current_width > expected_width:
+        mel_spec_db = mel_spec_db[:, :expected_width]
+        
+    return mel_spec_db.reshape(1, 64, 63, 1)
 
 def main():
     if not os.path.exists(MODEL_PATH):
