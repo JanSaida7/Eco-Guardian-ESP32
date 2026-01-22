@@ -96,18 +96,27 @@ def main():
                 confidence = prediction[0][class_idx]
                 label = CLASSES[class_idx]
 
+                # DEBUG: Calculate volume
+                rms = np.sqrt(np.mean(audio_buffer**2))
+
+                # DEBUG: Print raw probabilities to diagnose "Why is it failing?"
+                bg_conf = prediction[0][0]
+                chain_conf = prediction[0][1]
+                gun_conf = prediction[0][2]
+                
+                # Dynamic print row (overwrites previous line if supported, or just prints)
+                print(f"[DEBUG] Vol:{rms:.3f} | BG:{bg_conf:.2f} | CHAIN:{chain_conf:.2f} | GUN:{gun_conf:.2f}")
+
                 # Display Result
                 if confidence > THRESHOLD:
                     if label in ["gunshot", "chainsaw"]:
-                        # DANGER ALERT
-                        print(f"\033[91m[DANGER] Detected: {label.upper()} ({confidence:.2f})\033[0m")
-                        if confidence > 0.8: # Only beep on high confidence to avoid spam
+                        print(f"\n\033[91m[DANGER] >>> DETECTED: {label.upper()} ({confidence:.2f}) <<<\033[0m")
+                        if confidence > 0.8:
                              winsound.Beep(1000, 200) 
                     else:
-                        pass # Silence for background
-                        # print(f"\033[92m[SAFE] Detected: {label.upper()} ({confidence:.2f})\033[0m")
+                        pass 
                 else:
-                    pass # print(f"[UNCERTAIN] ({confidence:.2f})")
+                    pass
                 
             except KeyboardInterrupt:
                 break
