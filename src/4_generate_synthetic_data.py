@@ -97,18 +97,13 @@ def main():
             
             # 3. Augment foreground first? (Optional, let's keep it simple mixing first)
             
-            # 4. Mix at random SNR (-5dB to 15dB)
-            # -5dB means noise is louder than signal (Hard)
-            # 15dB means signal is much louder (Easy)
-            snr = random.uniform(-5, 15)
+            # 4. HEAVY NOISE SCENARIO (FAN/AC):
+            # Range: -10dB (Target buried in noise) to 5dB (Target slightly louder)
+            snr = random.uniform(-10, 5)
             mixed = mix_audio(fore, back, snr)
             
-            # 5. Apply Pitch/Speed Augmentation to the mixed result or components?
-            # Better to augment foreground before mixing strictly speaking, but mixing variation is key.
-            # Let's augment the MIXED result to simulate "recording speed/pitch" variations? 
-            # OR augment foreground to simulate different saw speeds.
-            # Let's augment foreground BEFORE mixing for variety of events.
-            if random.random() < 0.7:
+            # 5. Apply Pitch/Speed Augmentation
+            if random.random() < 0.8: # Increased chance of augmentation
                  try:
                     fore_aug = augment_pitch_speed(fore)
                     # Fix length again after aug
