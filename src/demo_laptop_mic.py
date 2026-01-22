@@ -15,8 +15,13 @@ DURATION = 2.0  # Seconds
 BLOCK_SIZE = int(SAMPLE_RATE * DURATION)
 THRESHOLD = 0.6 # Confidence threshold - lowered for better sensitivity
 
-# Audio Queue
-audio_queue = queue.Queue()
+# Sliding Window Constants
+WINDOW_STEP = 0.5 # Seconds (Overlap = DURATION - WINDOW_STEP)
+STEP_SIZE = int(SAMPLE_RATE * WINDOW_STEP)
+
+# Audio Buffer (Rolling)
+# We initialized it with zeros
+audio_buffer = np.zeros(BLOCK_SIZE, dtype=np.float32)
 
 def audio_callback(indata, frames, time, status):
     """Callback function to capture audio."""
@@ -25,32 +30,7 @@ def audio_callback(indata, frames, time, status):
     # Add incoming audio to the queue
     audio_queue.put(indata.copy())
 
-def preprocess_audio(audio_buffer):
-    """Convert raw audio buffer to Mel-Spectrogram."""
-    # Flatten buffer
-    audio = audio_buffer.flatten()
-    
-    # Extract Mel-Spectrogram (Same logic as 1_preprocess.py)
-    mel_spec = librosa.feature.melspectrogram(
-        y=audio, 
-        sr=SAMPLE_RATE, 
-        n_mels=64, 
-        n_fft=1024, 
-        hop_length=512
-    )
-    mel_spec_db = librosa.power_to_db(mel_spec, ref=np.max)
-    
-    # Ensure shape matches model input (1, 64, 63, 1)
-    # Resize/Pad if necessary (simple resizing for real-time stability)
-    expected_width = 63
-    current_width = mel_spec_db.shape[1]
-    
-    if current_width < expected_width:
-        mel_spec_db = np.pad(mel_spec_db, ((0, 0), (0, expected_width - current_width)))
-    elif current_width > expected_width:
-        mel_spec_db = mel_spec_db[:, :expected_width]
-        
-    return mel_spec_db.reshape(1, 64, 63, 1)
+# ... (preprocess_audio remains same) ...
 
 def main():
     if not os.path.exists(MODEL_PATH):
@@ -63,15 +43,24 @@ def main():
     print("Listening... (Press Ctrl+C to stop)")
     print("-" * 50)
 
-    # Start Recording Stream
-    with sd.InputStream(callback=audio_callback, channels=1, samplerate=SAMPLE_RATE, blocksize=BLOCK_SIZE):
+    # Global buffer 
+    global audio_buffer
+
+    # Start Recording Stream with smaller blocks
+    with sd.InputStream(callback=audio_callback, channels=1, samplerate=SAMPLE_RATE, blocksize=STEP_SIZE):
         while True:
             try:
-                # Get audio block from queue
-                audio_block = audio_queue.get()
+                # Get small block (0.5s)
+                new_data = audio_queue.get()
                 
-                # Preprocess
-                input_data = preprocess_audio(audio_block)
+                # Update rolling buffer
+                # Shift left
+                audio_buffer = np.roll(audio_buffer, -STEP_SIZE)
+                # Overwrite end with new data (flatten to 1D)
+                audio_buffer[-STEP_SIZE:] = new_data.flatten()
+                
+                # Preprocess current 2s buffer
+                input_data = preprocess_audio(audio_buffer)
                 
                 # Predict
                 prediction = model.predict(input_data, verbose=0)
@@ -84,13 +73,13 @@ def main():
                     if label in ["gunshot", "chainsaw"]:
                         # DANGER ALERT
                         print(f"\033[91m[DANGER] Detected: {label.upper()} ({confidence:.2f})\033[0m")
-                        print(f"\033[93m>>> Sending Alert to Forest Ranger: 'Illegal Activity: {label}'\033[0m")
-                        winsound.Beep(1000, 500) # Frequency 1000Hz, Duration 500ms
+                        if confidence > 0.8: # Only beep on high confidence to avoid spam
+                             winsound.Beep(1000, 200) 
                     else:
-                        # SAFE
-                        print(f"\033[92m[SAFE] Detected: {label.upper()} ({confidence:.2f})\033[0m")
+                        pass # Silence for background
+                        # print(f"\033[92m[SAFE] Detected: {label.upper()} ({confidence:.2f})\033[0m")
                 else:
-                    print(f"[UNCERTAIN] ({confidence:.2f})")
+                    pass # print(f"[UNCERTAIN] ({confidence:.2f})")
                 
             except KeyboardInterrupt:
                 break

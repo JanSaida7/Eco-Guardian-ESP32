@@ -12,8 +12,8 @@ import seaborn as sns
 DATA_DIR = "./data"
 MODEL_DIR = "./models"
 CLASSES = ["background", "chainsaw", "gunshot"]
-BATCH_SIZE = 32
-EPOCHS = 25
+BATCH_SIZE = 128
+EPOCHS = 3 # Reduced for faster turnover, dataset is large enough for quick convergence
 INPUT_SHAPE = (64, 63, 1) # (n_mels, time_steps, channels) - Verify this matches preprocess output
 
 def build_ds_cnn(input_shape, num_classes):

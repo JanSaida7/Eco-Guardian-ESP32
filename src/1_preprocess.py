@@ -4,7 +4,9 @@ import librosa
 from tqdm import tqdm
 
 # Constants
-DATA_DIR = "./data"
+# Constants
+DATA_DIR = "./data/synthetic_train"
+OUTPUT_DIR = "./data"
 SAMPLE_RATE = 16000
 DURATION = 2.0  # Seconds
 N_MELS = 64
@@ -118,8 +120,8 @@ def main():
     print(f"X shape: {X.shape}")
     print(f"y shape: {y.shape}")
 
-    np.save(os.path.join(DATA_DIR, "X.npy"), X)
-    np.save(os.path.join(DATA_DIR, "y.npy"), y)
+    np.save(os.path.join(OUTPUT_DIR, "X.npy"), X)
+    np.save(os.path.join(OUTPUT_DIR, "y.npy"), y)
     print("Features saved to ./data/X.npy and ./data/y.npy")
 
 if __name__ == "__main__":
