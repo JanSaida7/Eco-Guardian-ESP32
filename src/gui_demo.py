@@ -46,6 +46,16 @@ class EcoGuardianGUI:
         self.stop_button = ttk.Button(controls_frame, text="Stop Monitoring", command=self.stop_monitoring, state=tk.DISABLED)
         self.stop_button.pack(side=tk.LEFT, padx=5)
         
+        ttk.Label(controls_frame, text="Threshold:").pack(side=tk.LEFT, padx=(20, 5))
+        self.threshold_var = tk.DoubleVar(value=0.6)
+        self.threshold_slider = ttk.Scale(controls_frame, from_=0.0, to=1.0, variable=self.threshold_var, orient=tk.HORIZONTAL)
+        self.threshold_slider.pack(side=tk.LEFT, padx=5)
+        
+        self.threshold_label = ttk.Label(controls_frame, textvariable=self.threshold_var)
+        # Format slider value to 2 decimals
+        self.threshold_var.trace("w", lambda *args: self.threshold_label.config(text=f"{self.threshold_var.get():.2f}"))
+        self.threshold_label.pack(side=tk.LEFT)
+
         # Visualization Frame
         self.viz_frame = ttk.Frame(main_frame, relief="sunken", borderwidth=1)
         self.viz_frame.pack(fill=tk.BOTH, expand=True, pady=10)
@@ -55,20 +65,20 @@ class EcoGuardianGUI:
         
         # Waveform Plot (Top)
         self.ax_wave = self.fig.add_subplot(211)
-        self.ax_wave.set_title("Audio Waveform (Last 2s)")
+        self.ax_wave.set_title("Audio Waveform (Last 2s) - Live")
         self.ax_wave.set_ylim(-1, 1)
-        self.ax_wave.grid(True)
+        self.ax_wave.grid(True, linestyle='--', alpha=0.5)
         
         # Initial empty wave
         self.x_data = np.linspace(0, 2, 32000)[::10] 
-        self.line_wave, = self.ax_wave.plot(self.x_data, np.zeros(len(self.x_data)), linewidth=0.5)
+        self.line_wave, = self.ax_wave.plot(self.x_data, np.zeros(len(self.x_data)), linewidth=0.5, color='blue')
         
         # Probability Bar Chart (Bottom)
         self.ax_bar = self.fig.add_subplot(212)
         self.ax_bar.set_title("Class Probabilities")
         self.ax_bar.set_ylim(0, 1)
         self.bar_labels = ["Background", "Chainsaw", "Gunshot"]
-        self.bar_colors = ["green", "red", "orange"]
+        self.bar_colors = ["green", "red", "orange"] # Background=Green, Danger=Red/Orange
         self.bars = self.ax_bar.bar(self.bar_labels, [0, 0, 0], color=self.bar_colors)
         
         self.fig.tight_layout()
@@ -111,15 +121,22 @@ class EcoGuardianGUI:
         if result:
             probs, confidence, label, rms = result
             
+            # Threshold from slider
+            threshold = self.threshold_var.get()
+
             # Update Text
-            if confidence > 0.6: 
-                 self.result_var.set(f"Detected: {label.upper()} ({confidence:.2f})")
+            if confidence > threshold: 
+                 self.result_var.set(f"DETECTED: {label.upper()} ({confidence:.2f})")
                  if label in ["chainsaw", "gunshot"]:
                      self.result_label.config(foreground="red")
+                     # Beep for danger
+                     if confidence > 0.8:
+                         # Non-blocking beep not easily possible without threading or windows specific
+                         pass
                  else:
                      self.result_label.config(foreground="green")
             else:
-                 self.result_var.set(f"Scanning... Vol: {rms:.3f}")
+                 self.result_var.set(f"Scanning... (Vol: {rms:.3f})")
                  self.result_label.config(foreground="gray")
 
             # Update Waveform
