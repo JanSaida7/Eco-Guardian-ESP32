@@ -2,13 +2,16 @@ import tkinter as tk
 from tkinter import ttk
 import threading
 import time
-from audio_processor import AudioProcessor # Assuming refactored logic is here
+import numpy as np
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from audio_processor import AudioProcessor
 
 class EcoGuardianGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Eco-Guardian Real-Time Detection")
-        self.root.geometry("800x600")
+        self.root.geometry("1000x700") # Increased size for plots
         
         # Audio Processor
         self.processor = AudioProcessor()
@@ -43,11 +46,25 @@ class EcoGuardianGUI:
         self.stop_button = ttk.Button(controls_frame, text="Stop Monitoring", command=self.stop_monitoring, state=tk.DISABLED)
         self.stop_button.pack(side=tk.LEFT, padx=5)
         
-        # Placeholder for Visualizations (Will be populated in later commits)
+        # Visualization Frame
         self.viz_frame = ttk.Frame(main_frame, relief="sunken", borderwidth=1)
         self.viz_frame.pack(fill=tk.BOTH, expand=True, pady=10)
         
-        ttk.Label(self.viz_frame, text="Waveform Display Area (Pending Implementation)").pack(expand=True)
+        # --- Matplotlib Setup ---
+        self.fig = Figure(figsize=(8, 4), dpi=100)
+        self.ax_wave = self.fig.add_subplot(111)
+        self.ax_wave.set_title("Audio Waveform (Last 2s)")
+        self.ax_wave.set_ylim(-1, 1)
+        self.ax_wave.grid(True)
+        
+        # Initial empty plot
+        # Downsample x_data immediately to match update loop (factor of 10)
+        self.x_data = np.linspace(0, 2, 32000)[::10] 
+        self.line_wave, = self.ax_wave.plot(self.x_data, np.zeros(len(self.x_data)), linewidth=0.5)
+        
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.viz_frame)
+        self.canvas.draw()
+        self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
         
         # Detection Result Area
         self.result_var = tk.StringVar(value="Waiting for audio...")
@@ -74,13 +91,17 @@ class EcoGuardianGUI:
             return
             
         # Process audio chunk
-        result = self.processor.process_next_chunk()
+        # Loop to drain queue so we are always up to date
+        result = None
+        while not self.processor.audio_queue.empty():
+            result = self.processor.process_next_chunk()
         
+        # If we got a result (means new data processed)
         if result:
             probs, confidence, label, rms = result
             
-            # Simple text update for now
-            if confidence > 0.6: # specific threshold
+            # Update Text
+            if confidence > 0.6: 
                  self.result_var.set(f"Detected: {label.upper()} ({confidence:.2f})")
                  if label in ["chainsaw", "gunshot"]:
                      self.result_label.config(foreground="red")
@@ -89,6 +110,13 @@ class EcoGuardianGUI:
             else:
                  self.result_var.set(f"Scanning... Vol: {rms:.3f}")
                  self.result_label.config(foreground="gray")
+
+            # Update Waveform
+            # Downsample for performance (plot every 10th sample)
+            display_data = self.processor.audio_buffer[::10]
+            
+            self.line_wave.set_ydata(display_data)
+            self.canvas.draw_idle() # Efficient redraw
         
         # Schedule next update
         self.root.after(50, self.update_loop)
