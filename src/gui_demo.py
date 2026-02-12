@@ -51,16 +51,27 @@ class EcoGuardianGUI:
         self.viz_frame.pack(fill=tk.BOTH, expand=True, pady=10)
         
         # --- Matplotlib Setup ---
-        self.fig = Figure(figsize=(8, 4), dpi=100)
-        self.ax_wave = self.fig.add_subplot(111)
+        self.fig = Figure(figsize=(8, 6), dpi=100)
+        
+        # Waveform Plot (Top)
+        self.ax_wave = self.fig.add_subplot(211)
         self.ax_wave.set_title("Audio Waveform (Last 2s)")
         self.ax_wave.set_ylim(-1, 1)
         self.ax_wave.grid(True)
         
-        # Initial empty plot
-        # Downsample x_data immediately to match update loop (factor of 10)
+        # Initial empty wave
         self.x_data = np.linspace(0, 2, 32000)[::10] 
         self.line_wave, = self.ax_wave.plot(self.x_data, np.zeros(len(self.x_data)), linewidth=0.5)
+        
+        # Probability Bar Chart (Bottom)
+        self.ax_bar = self.fig.add_subplot(212)
+        self.ax_bar.set_title("Class Probabilities")
+        self.ax_bar.set_ylim(0, 1)
+        self.bar_labels = ["Background", "Chainsaw", "Gunshot"]
+        self.bar_colors = ["green", "red", "orange"]
+        self.bars = self.ax_bar.bar(self.bar_labels, [0, 0, 0], color=self.bar_colors)
+        
+        self.fig.tight_layout()
         
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.viz_frame)
         self.canvas.draw()
@@ -112,10 +123,13 @@ class EcoGuardianGUI:
                  self.result_label.config(foreground="gray")
 
             # Update Waveform
-            # Downsample for performance (plot every 10th sample)
             display_data = self.processor.audio_buffer[::10]
-            
             self.line_wave.set_ydata(display_data)
+            
+            # Update Bars
+            for bar, prob in zip(self.bars, probs):
+                bar.set_height(prob)
+            
             self.canvas.draw_idle() # Efficient redraw
         
         # Schedule next update
