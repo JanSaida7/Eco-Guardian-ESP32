@@ -52,9 +52,18 @@ class EcoGuardianGUI:
         self.threshold_slider.pack(side=tk.LEFT, padx=5)
         
         self.threshold_label = ttk.Label(controls_frame, textvariable=self.threshold_var)
-        # Format slider value to 2 decimals
         self.threshold_var.trace("w", lambda *args: self.threshold_label.config(text=f"{self.threshold_var.get():.2f}"))
         self.threshold_label.pack(side=tk.LEFT)
+
+        # Gain Control
+        ttk.Label(controls_frame, text="Gain:").pack(side=tk.LEFT, padx=(20, 5))
+        self.gain_var = tk.DoubleVar(value=1.0)
+        self.gain_slider = ttk.Scale(controls_frame, from_=0.1, to=5.0, variable=self.gain_var, orient=tk.HORIZONTAL)
+        self.gain_slider.pack(side=tk.LEFT, padx=5)
+        
+        self.gain_label = ttk.Label(controls_frame, textvariable=self.gain_var)
+        self.gain_var.trace("w", lambda *args: self.gain_label.config(text=f"x{self.gain_var.get():.1f}"))
+        self.gain_label.pack(side=tk.LEFT)
 
         # Visualization Frame
         self.viz_frame = ttk.Frame(main_frame, relief="sunken", borderwidth=1)
@@ -114,8 +123,9 @@ class EcoGuardianGUI:
         # Process audio chunk
         # Loop to drain queue so we are always up to date
         result = None
+        gain = self.gain_var.get()
         while not self.processor.audio_queue.empty():
-            result = self.processor.process_next_chunk()
+            result = self.processor.process_next_chunk(gain=gain)
         
         # If we got a result (means new data processed)
         if result:

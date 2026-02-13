@@ -77,13 +77,13 @@ class AudioProcessor:
             
         return mel_spec_db.reshape(1, 64, 63, 1)
 
-    def process_next_chunk(self):
+    def process_next_chunk(self, gain=1.0):
         """
         Process the next chunk of audio from the queue.
         Returns: (prediction, confidence, label, rms) or None if queue is empty
         """
         if not self.audio_queue.empty():
-            new_data = self.audio_queue.get()
+            new_data = self.audio_queue.get() * gain
             
             # Update rolling buffer
             self.audio_buffer = np.roll(self.audio_buffer, -STEP_SIZE)
