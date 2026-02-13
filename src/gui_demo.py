@@ -99,7 +99,25 @@ class EcoGuardianGUI:
         # Detection Result Area
         self.result_var = tk.StringVar(value="Waiting for audio...")
         self.result_label = ttk.Label(main_frame, textvariable=self.result_var, font=("Helvetica", 14, "bold"), foreground="gray")
-        self.result_label.pack(pady=20)
+        self.result_label.pack(pady=(20, 5))
+        
+        # Event Log
+        log_frame = ttk.LabelFrame(main_frame, text="Event Log", padding="5")
+        log_frame.pack(fill=tk.BOTH, expand=True, pady=5)
+        
+        self.log_text = tk.Text(log_frame, height=5, state=tk.DISABLED, font=("Consolas", 9))
+        scrollbar = ttk.Scrollbar(log_frame, orient=tk.VERTICAL, command=self.log_text.yview)
+        self.log_text.configure(yscrollcommand=scrollbar.set)
+        
+        self.log_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+    def log_event(self, message, tag="info"):
+        timestamp = time.strftime("%H:%M:%S")
+        self.log_text.config(state=tk.NORMAL)
+        self.log_text.insert(tk.END, f"[{timestamp}] {message}\n", tag)
+        self.log_text.see(tk.END)
+        self.log_text.config(state=tk.DISABLED)
 
     def start_monitoring(self):
         self.running = True
@@ -107,6 +125,7 @@ class EcoGuardianGUI:
         self.stop_button.config(state=tk.NORMAL)
         self.status_var.set("Status: Monitoring...")
         self.processor.start_stream()
+        self.log_event("Monitoring started.", "info")
         self.update_loop()
 
     def stop_monitoring(self):
@@ -115,6 +134,7 @@ class EcoGuardianGUI:
         self.stop_button.config(state=tk.DISABLED)
         self.status_var.set("Status: Stopped")
         self.processor.stop_stream()
+        self.log_event("Monitoring stopped.", "info")
 
     def update_loop(self):
         if not self.running:
@@ -136,13 +156,14 @@ class EcoGuardianGUI:
 
             # Update Text
             if confidence > threshold: 
+                 # Debounce/Logic to prevent flooding log could be added here
+                 # For now, just log unique transitions or every detection
+                 # Let's log if it wasn't the last detected state to avoid flood
+                 
                  self.result_var.set(f"DETECTED: {label.upper()} ({confidence:.2f})")
                  if label in ["chainsaw", "gunshot"]:
                      self.result_label.config(foreground="red")
-                     # Beep for danger
-                     if confidence > 0.8:
-                         # Non-blocking beep not easily possible without threading or windows specific
-                         pass
+                     self.log_event(f"DETECTED: {label.upper()} ({confidence:.2f})", "danger")
                  else:
                      self.result_label.config(foreground="green")
             else:
