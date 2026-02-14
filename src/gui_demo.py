@@ -31,99 +31,42 @@ class EcoGuardianGUI:
         header_label = ttk.Label(main_frame, text="Eco-Guardian: Forest Sound Monitor", font=("Helvetica", 16, "bold"))
         header_label.pack(pady=10)
         
-        # Status Area
-        self.status_var = tk.StringVar(value="Status: Ready")
-        status_label = ttk.Label(main_frame, textvariable=self.status_var, font=("Helvetica", 10))
-        status_label.pack(pady=5)
         
-        # Controls Frame
-        controls_frame = ttk.Frame(main_frame)
-        controls_frame.pack(pady=10)
+        # Status Area (LEDs)
+        self.led_frame = ttk.Frame(main_frame)
+        self.led_frame.pack(pady=5)
         
-        self.start_button = ttk.Button(controls_frame, text="Start Monitoring", command=self.start_monitoring)
-        self.start_button.pack(side=tk.LEFT, padx=5)
-        
-        self.stop_button = ttk.Button(controls_frame, text="Stop Monitoring", command=self.stop_monitoring, state=tk.DISABLED)
-        self.stop_button.pack(side=tk.LEFT, padx=5)
-        
-        ttk.Label(controls_frame, text="Threshold:").pack(side=tk.LEFT, padx=(20, 5))
-        self.threshold_var = tk.DoubleVar(value=0.6)
-        self.threshold_slider = ttk.Scale(controls_frame, from_=0.0, to=1.0, variable=self.threshold_var, orient=tk.HORIZONTAL)
-        self.threshold_slider.pack(side=tk.LEFT, padx=5)
-        
-        self.threshold_label = ttk.Label(controls_frame, textvariable=self.threshold_var)
-        self.threshold_var.trace("w", lambda *args: self.threshold_label.config(text=f"{self.threshold_var.get():.2f}"))
-        self.threshold_label.pack(side=tk.LEFT)
+        self.leds = {}
+        for i, label in enumerate(["Background", "Chainsaw", "Gunshot"]):
+            frame = ttk.Frame(self.led_frame)
+            frame.pack(side=tk.LEFT, padx=10)
+            
+            canvas = tk.Canvas(frame, width=30, height=30, highlightthickness=0)
+            canvas.pack()
+            
+            # Draw gray circle
+            led = canvas.create_oval(5, 5, 25, 25, fill="gray", outline="black")
+            
+            lbl = ttk.Label(frame, text=label, font=("Helvetica", 8))
+            lbl.pack()
+            
+            self.leds[label.lower()] = {"canvas": canvas, "id": led}
 
-        # Gain Control
-        ttk.Label(controls_frame, text="Gain:").pack(side=tk.LEFT, padx=(20, 5))
-        self.gain_var = tk.DoubleVar(value=1.0)
-        self.gain_slider = ttk.Scale(controls_frame, from_=0.1, to=5.0, variable=self.gain_var, orient=tk.HORIZONTAL)
-        self.gain_slider.pack(side=tk.LEFT, padx=5)
+    def update_leds(self, detected_label):
+        # Reset all to gray
+        for label, data in self.leds.items():
+            data["canvas"].itemconfig(data["id"], fill="gray")
         
-        self.gain_label = ttk.Label(controls_frame, textvariable=self.gain_var)
-        self.gain_var.trace("w", lambda *args: self.gain_label.config(text=f"x{self.gain_var.get():.1f}"))
-        self.gain_label.pack(side=tk.LEFT)
-
-        # Visualization Frame
-        self.viz_frame = ttk.Frame(main_frame, relief="sunken", borderwidth=1)
-        self.viz_frame.pack(fill=tk.BOTH, expand=True, pady=10)
-        
-        # --- Matplotlib Setup ---
-        self.fig = Figure(figsize=(8, 6), dpi=100)
-        
-        # Waveform Plot (Top)
-        self.ax_wave = self.fig.add_subplot(211)
-        self.ax_wave.set_title("Audio Waveform (Last 2s) - Live")
-        self.ax_wave.set_ylim(-1, 1)
-        self.ax_wave.grid(True, linestyle='--', alpha=0.5)
-        
-        # Initial empty wave
-        self.x_data = np.linspace(0, 2, 32000)[::10] 
-        self.line_wave, = self.ax_wave.plot(self.x_data, np.zeros(len(self.x_data)), linewidth=0.5, color='blue')
-        
-        # Probability Bar Chart (Bottom)
-        self.ax_bar = self.fig.add_subplot(212)
-        self.ax_bar.set_title("Class Probabilities")
-        self.ax_bar.set_ylim(0, 1)
-        self.bar_labels = ["Background", "Chainsaw", "Gunshot"]
-        self.bar_colors = ["green", "red", "orange"] # Background=Green, Danger=Red/Orange
-        self.bars = self.ax_bar.bar(self.bar_labels, [0, 0, 0], color=self.bar_colors)
-        
-        self.fig.tight_layout()
-        
-        self.canvas = FigureCanvasTkAgg(self.fig, master=self.viz_frame)
-        self.canvas.draw()
-        self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-        
-        # Detection Result Area
-        self.result_var = tk.StringVar(value="Waiting for audio...")
-        self.result_label = ttk.Label(main_frame, textvariable=self.result_var, font=("Helvetica", 14, "bold"), foreground="gray")
-        self.result_label.pack(pady=(20, 5))
-        
-        # Event Log
-        log_frame = ttk.LabelFrame(main_frame, text="Event Log", padding="5")
-        log_frame.pack(fill=tk.BOTH, expand=True, pady=5)
-        
-        self.log_text = tk.Text(log_frame, height=5, state=tk.DISABLED, font=("Consolas", 9))
-        scrollbar = ttk.Scrollbar(log_frame, orient=tk.VERTICAL, command=self.log_text.yview)
-        self.log_text.configure(yscrollcommand=scrollbar.set)
-        
-        self.log_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-    def log_event(self, message, tag="info"):
-        timestamp = time.strftime("%H:%M:%S")
-        self.log_text.config(state=tk.NORMAL)
-        self.log_text.insert(tk.END, f"[{timestamp}] {message}\n", tag)
-        self.log_text.see(tk.END)
-        self.log_text.config(state=tk.DISABLED)
+        # Highlight detected
+        if detected_label in self.leds:
+            color = "green" if detected_label == "background" else "red"
+            self.leds[detected_label]["canvas"].itemconfig(self.leds[detected_label]["id"], fill=color)
 
     def start_monitoring(self):
         self.running = True
         self.start_button.config(state=tk.DISABLED)
         self.stop_button.config(state=tk.NORMAL)
-        self.status_var.set("Status: Monitoring...")
+        # self.status_var.set("Status: Monitoring...") # Removed to save space
         self.processor.start_stream()
         self.log_event("Monitoring started.", "info")
         self.update_loop()
@@ -132,9 +75,10 @@ class EcoGuardianGUI:
         self.running = False
         self.start_button.config(state=tk.NORMAL)
         self.stop_button.config(state=tk.DISABLED)
-        self.status_var.set("Status: Stopped")
+        # self.status_var.set("Status: Stopped")
         self.processor.stop_stream()
         self.log_event("Monitoring stopped.", "info")
+        self.update_leds(None) # Turn off LEDs
 
     def update_loop(self):
         if not self.running:
@@ -154,13 +98,11 @@ class EcoGuardianGUI:
             # Threshold from slider
             threshold = self.threshold_var.get()
 
-            # Update Text
+            # Update Text & LEDs
             if confidence > threshold: 
-                 # Debounce/Logic to prevent flooding log could be added here
-                 # For now, just log unique transitions or every detection
-                 # Let's log if it wasn't the last detected state to avoid flood
-                 
                  self.result_var.set(f"DETECTED: {label.upper()} ({confidence:.2f})")
+                 self.update_leds(label)
+                 
                  if label in ["chainsaw", "gunshot"]:
                      self.result_label.config(foreground="red")
                      self.log_event(f"DETECTED: {label.upper()} ({confidence:.2f})", "danger")
@@ -169,6 +111,7 @@ class EcoGuardianGUI:
             else:
                  self.result_var.set(f"Scanning... (Vol: {rms:.3f})")
                  self.result_label.config(foreground="gray")
+                 self.update_leds("background") # Default to background or none? Let's say background if low confidence means ambiguity or just silence which is background logic usually. Or maybe "None"
 
             # Update Waveform
             display_data = self.processor.audio_buffer[::10]
