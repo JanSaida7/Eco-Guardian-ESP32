@@ -5,15 +5,15 @@ from tqdm import tqdm
 
 # Constants
 # Constants
-DATA_DIR = "./data/synthetic_train"
-OUTPUT_DIR = "./data"
-SAMPLE_RATE = 16000
-DURATION = 2.0  # Seconds
+from utils import DATA_DIR as BASE_DATA_DIR, CLASSES, SAMPLE_RATE, DURATION
+
+# Constants
+DATA_DIR = os.path.join(BASE_DATA_DIR, "synthetic_train")
+OUTPUT_DIR = BASE_DATA_DIR
+# SAMPLE_RATE, DURATION imported from utils
 N_MELS = 64
 N_FFT = 1024
 HOP_LENGTH = 512
-
-CLASSES = ["background", "chainsaw", "gunshot"]
 
 def extract_features(file_path):
     try:
