@@ -23,7 +23,8 @@ This project contributes to **SDG 15: Life on Land** by providing a low-cost, sc
 1.  **Install Dependencies**: `pip install -r requirements.txt`
 2.  **Add Data**: Download **ESC-50** or **UrbanSound8K** datasets and populate the `data/` folders.
 3.  **Run Pipeline**:
-    - `python src/1_preprocess.py` (Extract Mel-Spectrograms)
+    - `python src/4_generate_synthetic_data.py` (Generate synthetic training data with noise augmentation)
+    - `python src/1_preprocess.py` (Extract Mel-Spectrograms from synthetic data)
     - `python src/2_train.py` (Train DS-CNN & Generate Confusion Matrix)
     - `python src/3_convert.py` (Quantize & Convert to C++)
 
