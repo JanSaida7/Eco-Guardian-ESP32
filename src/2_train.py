@@ -8,10 +8,10 @@ from sklearn.metrics import confusion_matrix, classification_report
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from utils import DATA_DIR, CLASSES
+
 # Constants
-DATA_DIR = "./data"
 MODEL_DIR = "./models"
-CLASSES = ["background", "chainsaw", "gunshot"]
 BATCH_SIZE = 128
 EPOCHS = 3 # Reduced for faster turnover, dataset is large enough for quick convergence
 INPUT_SHAPE = (64, 63, 1) # (n_mels, time_steps, channels) - Verify this matches preprocess output
