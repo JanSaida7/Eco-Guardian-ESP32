@@ -8,10 +8,11 @@ import time
 import winsound  # For Windows Beep
 
 # Constants
-MODEL_PATH = "./models/forest_guard.h5"
-CLASSES = ["background", "chainsaw", "gunshot"]
-SAMPLE_RATE = 16000
-DURATION = 2.0  # Seconds
+from src.utils import MODEL_DIR, CLASSES, SAMPLE_RATE, DURATION
+
+# Constants
+MODEL_PATH = os.path.join(MODEL_DIR, "forest_guard.h5")
+# CLASSES, SAMPLE_RATE, DURATION imported from utils
 BLOCK_SIZE = int(SAMPLE_RATE * DURATION)
 THRESHOLD = 0.6 # Confidence threshold - lowered for better sensitivity
 
