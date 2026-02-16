@@ -3,11 +3,10 @@ import urllib.request
 import csv
 import ssl
 
+from src.utils import METADATA_URL, AUDIO_BASE_URL, METADATA_FILENAME as METADATA_FILE
+
 # Constants
 DATA_DIR = "./data"
-METADATA_URL = "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/meta/esc50.csv"
-AUDIO_BASE_URL = "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/"
-METADATA_FILE = "esc50.csv"
 
 # Target Categories (Map our folder names to ESC-50 categories)
 TARGET_MAP = {

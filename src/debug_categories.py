@@ -2,7 +2,8 @@ import urllib.request
 import csv
 import ssl
 
-METADATA_URL = "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/meta/esc50.csv"
+from src.utils import METADATA_URL
+
 METADATA_FILE = "esc50_debug.csv"
 
 def main():
