@@ -17,16 +17,29 @@ This project contributes to **SDG 15: Life on Land** by providing a low-cost, sc
 ## 📂 Project Structure
 - `data/`: Place your raw .wav files here (Structure: `gunshot/`, `chainsaw/`, `background/`).
 - `src/`: Python scripts for Preprocessing, Training, and Conversion.
+  - `0_download_data.py`: Downloads ESC-50 dataset and extracts relevant categories.
+  - `1_preprocess.py`: Extracts Mel-Spectrograms.
+  - `2_train.py`: Trains the DS-CNN model.
+  - `3_convert.py`: Converts model to TFLite/C++.
+  - `4_generate_synthetic_data.py`: Generates synthetic training data with noise.
+  - `debug_categories.py`: Helper to check ESC-50 categories.
+  - `demo_laptop_mic.py`: Real-time demo using laptop microphone.
+  - `utils.py`: Shared constants and configuration.
 - `models/`: Stores trained models (`.h5`, `.tflite`) and performance graphs.
 
 ## 🚀 Setup Instructions
 1.  **Install Dependencies**: `pip install -r requirements.txt`
-2.  **Add Data**: Download **ESC-50** or **UrbanSound8K** datasets and populate the `data/` folders.
+2.  **Add Data**: 
+    - **Option A (Automatic)**: Run `python -m src.0_download_data` to download relevant ESC-50 samples.
+    - **Option B (Manual)**: Download **ESC-50** or **UrbanSound8K** datasets and populate the `data/` folders manually.
 3.  **Run Pipeline**:
-    - `python src/4_generate_synthetic_data.py` (Generate synthetic training data with noise augmentation)
-    - `python src/1_preprocess.py` (Extract Mel-Spectrograms from synthetic data)
-    - `python src/2_train.py` (Train DS-CNN & Generate Confusion Matrix)
-    - `python src/3_convert.py` (Quantize & Convert to C++)
+    *Note: Run all scripts from the project root using `python -m src.<script_name>` to ensure imports work correctly.*
+    - `python -m src.4_generate_synthetic_data` (Generate synthetic training data with noise augmentation)
+    - `python -m src.1_preprocess` (Extract Mel-Spectrograms from synthetic data)
+    - `python -m src.2_train` (Train DS-CNN & Generate Confusion Matrix)
+    - `python -m src.3_convert` (Quantize & Convert to C++)
+4.  **Run Demo**:
+    - `python -m src.demo_laptop_mic` (Test model in real-time)
 
 ## 📊 Experimental Results
 The training script automatically generates:
