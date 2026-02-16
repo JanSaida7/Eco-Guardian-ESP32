@@ -6,10 +6,11 @@ from tqdm import tqdm
 import random
 
 # Constants
-from utils import DATA_DIR, CLASSES, SAMPLE_RATE, DURATION
+# Constants
+from src.utils import DATA_DIR, CLASSES, SAMPLE_RATE, DURATION, SYNTHETIC_DIR
 
 # Constants
-SYNTHETIC_DIR = os.path.join(DATA_DIR, "synthetic_train")
+# SYNTHETIC_DIR imported from utils
 TARGET_CLASSES = [c for c in CLASSES if c != "background"]
 BACKGROUND_CLASS = "background"
 SAMPLES_PER_TARGET = 1000  # Generate 1000 samples per target class
