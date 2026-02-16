@@ -8,13 +8,12 @@ from sklearn.metrics import confusion_matrix, classification_report
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from utils import DATA_DIR, CLASSES
+from src.utils import DATA_DIR, CLASSES, MODEL_DIR, INPUT_SHAPE
 
 # Constants
-MODEL_DIR = "./models"
 BATCH_SIZE = 128
 EPOCHS = 3 # Reduced for faster turnover, dataset is large enough for quick convergence
-INPUT_SHAPE = (64, 63, 1) # (n_mels, time_steps, channels) - Verify this matches preprocess output
+# INPUT_SHAPE imported from utils
 
 def build_ds_cnn(input_shape, num_classes):
     """
