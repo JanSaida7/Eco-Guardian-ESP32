@@ -3,8 +3,7 @@ import numpy as np
 import tensorflow as tf
 
 # Constants
-DATA_DIR = "./data"
-MODEL_DIR = "./models"
+from src.utils import DATA_DIR, MODEL_DIR
 H5_MODEL_PATH = os.path.join(MODEL_DIR, "forest_guard.h5")
 TFLITE_MODEL_PATH = os.path.join(MODEL_DIR, "model_quantized.tflite")
 CC_MODEL_PATH = os.path.join(MODEL_DIR, "model_data.cc")
