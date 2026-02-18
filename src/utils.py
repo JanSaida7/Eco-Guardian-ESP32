@@ -15,3 +15,11 @@ HOP_LENGTH = 512
 MODEL_DIR = "models"
 INPUT_SHAPE = (64, 63, 1)
 SYNTHETIC_DIR = os.path.join(DATA_DIR, "synthetic_train")
+
+def ensure_dir(directory):
+    """
+    Ensures that a directory exists. If not, creates it.
+    """
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+        print(f"Created directory: {directory}")
