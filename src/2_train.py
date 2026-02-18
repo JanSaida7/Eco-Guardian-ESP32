@@ -8,7 +8,7 @@ from sklearn.metrics import confusion_matrix, classification_report
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from src.utils import DATA_DIR, CLASSES, MODEL_DIR, INPUT_SHAPE
+from src.utils import DATA_DIR, CLASSES, MODEL_DIR, INPUT_SHAPE, ensure_dir
 
 # Constants
 BATCH_SIZE = 128
@@ -59,6 +59,7 @@ def plot_confusion_matrix(y_true, y_pred, classes):
     plt.title('Confusion Matrix')
     plt.ylabel('Actual')
     plt.xlabel('Predicted')
+    ensure_dir(MODEL_DIR)
     plt.savefig(os.path.join(MODEL_DIR, "confusion_matrix.png"))
     print(f"Confusion Matrix saved to {os.path.join(MODEL_DIR, 'confusion_matrix.png')}")
 
