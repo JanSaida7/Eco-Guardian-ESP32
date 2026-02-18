@@ -7,7 +7,7 @@ import random
 
 # Constants
 # Constants
-from src.utils import DATA_DIR, CLASSES, SAMPLE_RATE, DURATION, SYNTHETIC_DIR
+from src.utils import DATA_DIR, CLASSES, SAMPLE_RATE, DURATION, SYNTHETIC_DIR, ensure_dir
 
 # Constants
 # SYNTHETIC_DIR imported from utils
@@ -65,8 +65,7 @@ def augment_pitch_speed(audio):
         return librosa.effects.time_stretch(audio, rate=rate)
 
 def main():
-    if not os.path.exists(SYNTHETIC_DIR):
-        os.makedirs(SYNTHETIC_DIR)
+    ensure_dir(SYNTHETIC_DIR)
         
     print("Loading Source Audio...")
     background_clips = load_audio_files(BACKGROUND_CLASS)
@@ -80,8 +79,7 @@ def main():
     
     for label in TARGET_CLASSES:
         output_folder = os.path.join(SYNTHETIC_DIR, label)
-        if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
+        ensure_dir(output_folder)
             
         clips = target_clips[label]
         if not clips:
@@ -123,8 +121,8 @@ def main():
     # Also generate "pure" background samples (just augment existing backgrounds)
     # We want the model to have a "Background" class too.
     bg_folder = os.path.join(SYNTHETIC_DIR, BACKGROUND_CLASS)
-    if not os.path.exists(bg_folder):
-        os.makedirs(bg_folder)
+    bg_folder = os.path.join(SYNTHETIC_DIR, BACKGROUND_CLASS)
+    ensure_dir(bg_folder)
         
     for i in tqdm(range(SAMPLES_PER_TARGET), desc="Generating Background"):
         bg = random.choice(background_clips)
