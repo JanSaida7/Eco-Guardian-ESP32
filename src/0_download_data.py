@@ -3,10 +3,7 @@ import urllib.request
 import csv
 import ssl
 
-from src.utils import METADATA_URL, AUDIO_BASE_URL, METADATA_FILENAME as METADATA_FILE
-
-# Constants
-DATA_DIR = "./data"
+from src.utils import METADATA_URL, AUDIO_BASE_URL, METADATA_FILENAME as METADATA_FILE, DATA_DIR, ensure_dir
 
 # Target Categories (Map our folder names to ESC-50 categories)
 TARGET_MAP = {
@@ -53,7 +50,7 @@ def main():
     print(f"Starting Download ({SAMPLES_PER_CLASS} samples per class)...")
     for folder, files in files_to_download.items():
         save_dir = os.path.join(DATA_DIR, folder)
-        os.makedirs(save_dir, exist_ok=True)
+        ensure_dir(save_dir)
         
         print(f"Downloading {len(files)} files for '{folder}'...")
         for filename in files:
