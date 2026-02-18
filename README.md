@@ -10,7 +10,7 @@ This project contributes to **SDG 15: Life on Land** by providing a low-cost, sc
 - **Target 15.7**: Take urgent action to end poaching and trafficking of protected species of flora and fauna and address both demand and supply of illegal wildlife products.
 
 ## 🎯 Objectives
-1.  **Decect Illegal Activity**: Identify "Gunshots" (poaching) and "Chainsaws" (illegal logging) in real-time.
+1.  **Detect Illegal Activity**: Identify "Gunshots" (poaching) and "Chainsaws" (illegal logging) in real-time.
 2.  **Edge Compute**: Run fully on-device (ESP32) without cloud dependency for privacy and battery efficiency.
 3.  **Lightweight**: Utilize a **Depthwise Separable CNN** (MobileNet-style) to minimize RAM/Flash usage.
 
