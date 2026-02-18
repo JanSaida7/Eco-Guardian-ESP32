@@ -6,7 +6,7 @@ from tqdm import tqdm
 # Constants
 # Constants
 # Constants
-from src.utils import DATA_DIR as BASE_DATA_DIR, SYNTHETIC_DIR, CLASSES, SAMPLE_RATE, DURATION, N_MELS, N_FFT, HOP_LENGTH
+from src.utils import DATA_DIR as BASE_DATA_DIR, SYNTHETIC_DIR, CLASSES, SAMPLE_RATE, DURATION, N_MELS, N_FFT, HOP_LENGTH, ensure_dir
 
 # Constants
 DATA_DIR = SYNTHETIC_DIR
@@ -117,6 +117,7 @@ def main():
     print(f"X shape: {X.shape}")
     print(f"y shape: {y.shape}")
 
+    ensure_dir(OUTPUT_DIR)
     np.save(os.path.join(OUTPUT_DIR, "X.npy"), X)
     np.save(os.path.join(OUTPUT_DIR, "y.npy"), y)
     print("Features saved to ./data/X.npy and ./data/y.npy")
