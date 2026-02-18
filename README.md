@@ -45,3 +45,10 @@ This project contributes to **SDG 15: Life on Land** by providing a low-cost, sc
 The training script automatically generates:
 - `models/confusion_matrix.png`: Visual proof of classification performance.
 - `models/training_history.csv`: Loss/Accuracy curves.
+
+## ✅ Verification
+To verify that the project structure and dependencies are correctly set up, run:
+```bash
+python -m src.verify_setup
+```
+This script checks for the existence of necessary files and directories.
