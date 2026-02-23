@@ -5,13 +5,12 @@ import queue
 import sounddevice as sd
 import os
 
-# Constants
-MODEL_PATH = "./models/forest_guard.h5"
-CLASSES = ["background", "chainsaw", "gunshot"]
-SAMPLE_RATE = 16000
-DURATION = 2.0  # Seconds
+from src.utils import CLASSES, SAMPLE_RATE, DURATION, MODEL_DIR, N_MELS, N_FFT, HOP_LENGTH
+
+# Derived constants
+MODEL_PATH = os.path.join(MODEL_DIR, "forest_guard.h5")
 BLOCK_SIZE = int(SAMPLE_RATE * DURATION)
-WINDOW_STEP = 0.5 # Seconds
+WINDOW_STEP = 0.5  # Seconds
 STEP_SIZE = int(SAMPLE_RATE * WINDOW_STEP)
 
 class AudioProcessor:
@@ -59,11 +58,11 @@ class AudioProcessor:
         audio = audio_buffer.flatten()
         
         mel_spec = librosa.feature.melspectrogram(
-            y=audio, 
-            sr=SAMPLE_RATE, 
-            n_mels=64, 
-            n_fft=1024, 
-            hop_length=512
+            y=audio,
+            sr=SAMPLE_RATE,
+            n_mels=N_MELS,
+            n_fft=N_FFT,
+            hop_length=HOP_LENGTH
         )
         mel_spec_db = librosa.power_to_db(mel_spec, ref=np.max)
         
