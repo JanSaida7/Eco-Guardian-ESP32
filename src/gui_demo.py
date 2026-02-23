@@ -26,31 +26,73 @@ class EcoGuardianGUI:
         # Main Container
         main_frame = ttk.Frame(self.root, padding="10")
         main_frame.pack(fill=tk.BOTH, expand=True)
-        
+
         # Header
         header_label = ttk.Label(main_frame, text="Eco-Guardian: Forest Sound Monitor", font=("Helvetica", 16, "bold"))
         header_label.pack(pady=10)
-        
-        
+
         # Status Area (LEDs)
         self.led_frame = ttk.Frame(main_frame)
         self.led_frame.pack(pady=5)
-        
+
         self.leds = {}
         for i, label in enumerate(["Background", "Chainsaw", "Gunshot"]):
             frame = ttk.Frame(self.led_frame)
             frame.pack(side=tk.LEFT, padx=10)
-            
+
             canvas = tk.Canvas(frame, width=30, height=30, highlightthickness=0)
             canvas.pack()
-            
+
             # Draw gray circle
             led = canvas.create_oval(5, 5, 25, 25, fill="gray", outline="black")
-            
+
             lbl = ttk.Label(frame, text=label, font=("Helvetica", 8))
             lbl.pack()
-            
+
             self.leds[label.lower()] = {"canvas": canvas, "id": led}
+
+        # Result Label
+        self.result_var = tk.StringVar(value="Press Start to begin monitoring")
+        self.result_label = ttk.Label(main_frame, textvariable=self.result_var, font=("Helvetica", 12, "bold"), foreground="gray")
+        self.result_label.pack(pady=5)
+
+        # Controls: Gain & Threshold sliders
+        controls_frame = ttk.Frame(main_frame)
+        controls_frame.pack(pady=5, fill=tk.X)
+
+        ttk.Label(controls_frame, text="Gain:").pack(side=tk.LEFT, padx=5)
+        self.gain_var = tk.DoubleVar(value=1.0)
+        ttk.Scale(controls_frame, from_=0.1, to=5.0, orient=tk.HORIZONTAL, variable=self.gain_var, length=150).pack(side=tk.LEFT, padx=5)
+
+        ttk.Label(controls_frame, text="Threshold:").pack(side=tk.LEFT, padx=5)
+        self.threshold_var = tk.DoubleVar(value=0.7)
+        ttk.Scale(controls_frame, from_=0.1, to=1.0, orient=tk.HORIZONTAL, variable=self.threshold_var, length=150).pack(side=tk.LEFT, padx=5)
+
+        # Start / Stop Buttons
+        btn_frame = ttk.Frame(main_frame)
+        btn_frame.pack(pady=5)
+        self.start_button = ttk.Button(btn_frame, text="Start", command=self.start_monitoring)
+        self.start_button.pack(side=tk.LEFT, padx=10)
+        self.stop_button = ttk.Button(btn_frame, text="Stop", command=self.stop_monitoring, state=tk.DISABLED)
+        self.stop_button.pack(side=tk.LEFT, padx=10)
+
+        # Matplotlib Figure: Waveform + Bar Chart
+        fig = Figure(figsize=(9, 4))
+        ax_wave = fig.add_subplot(1, 2, 1)
+        ax_wave.set_title("Waveform")
+        ax_wave.set_ylim(-1, 1)
+        x_wave = np.linspace(0, 1, 3200)
+        self.line_wave, = ax_wave.plot(x_wave, np.zeros(3200))
+
+        ax_bar = fig.add_subplot(1, 2, 2)
+        ax_bar.set_title("Class Probabilities")
+        ax_bar.set_ylim(0, 1)
+        class_labels = ["Background", "Chainsaw", "Gunshot"]
+        self.bars = ax_bar.bar(class_labels, [0, 0, 0], color=["green", "orange", "red"])
+
+        self.canvas = FigureCanvasTkAgg(fig, master=main_frame)
+        self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
 
     def update_leds(self, detected_label):
         # Reset all to gray
