@@ -38,5 +38,15 @@ We are bridging the gap between "High Accuracy/Heavy Compute" (Paper 1) and "Low
     -   *Why?* Reduces model size by 4x, allowing larger/smarter models to fit in the same space.
 
 ## 4. Current Status & Next Steps
-- **Current Status**: Pipeline working, but model **under-fits** real-world noisy data (Demo failed).
-- **Next Step**: Implement `src/4_generate_synthetic_data.py` to blindly create thousands of noisy training examples.
+
+- **Current Status**: Full end-to-end pipeline implemented and verified.
+  - ✅ `src/0_download_data.py` — Downloads ESC-50 dataset samples.
+  - ✅ `src/4_generate_synthetic_data.py` — Generates 3,000+ synthetic noisy audio samples.
+  - ✅ `src/1_preprocess.py` — Extracts Mel-Spectrogram features with augmentation.
+  - ✅ `src/2_train.py` — Trains DS-CNN model, outputs confusion matrix.
+  - ✅ `src/3_convert.py` — Quantizes model to Int8 TFLite and exports as C++ array.
+  - ✅ `src/demo_laptop_mic.py` — Real-time detection via laptop microphone.
+  - ✅ `src/gui_demo.py` — GUI with live waveform, probability bars, and LED indicators.
+  - ✅ `src/verify_setup.py` — Confirms correct project setup before running.
+
+- **Next Step**: Deploy the quantized `.tflite` / `.cc` model onto the ESP32-S3 using the TFLM Arduino library, and integrate with I2S microphone hardware.
