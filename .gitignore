@@ -33,11 +33,25 @@ ENV/
 .env
 .venv
 
-# Project specific
+# Project specific — generated data & models
 data/
 *.h5
 *.tflite
 *.npy
+*.cc
+models/confusion_matrix.png
+models/training_history.csv
+esc50_debug.csv
+
+# IDE / Editor folders
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Jupyter / IPython
+.ipynb_checkpoints/
+*.ipynb
 
 # OS specific
 .DS_Store
