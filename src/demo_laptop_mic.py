@@ -8,7 +8,7 @@ import time
 import winsound  # For Windows Beep
 
 # Constants
-from src.utils import MODEL_DIR, CLASSES, SAMPLE_RATE, DURATION
+from src.utils import MODEL_DIR, CLASSES, SAMPLE_RATE, DURATION, N_MELS, N_FFT, HOP_LENGTH, INPUT_SHAPE
 
 # Constants
 MODEL_PATH = os.path.join(MODEL_DIR, "forest_guard.h5")
@@ -41,11 +41,11 @@ def preprocess_audio(audio_buffer):
     
     # Extract Mel-Spectrogram (Same logic as 1_preprocess.py)
     mel_spec = librosa.feature.melspectrogram(
-        y=audio, 
-        sr=SAMPLE_RATE, 
-        n_mels=64, 
-        n_fft=1024, 
-        hop_length=512
+        y=audio,
+        sr=SAMPLE_RATE,
+        n_mels=N_MELS,
+        n_fft=N_FFT,
+        hop_length=HOP_LENGTH
     )
     mel_spec_db = librosa.power_to_db(mel_spec, ref=np.max)
     
